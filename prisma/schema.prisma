@@ -1,0 +1,107 @@
+// GoatCod – Prisma schema (SQLite)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Platform ───────────────────────────────────────────────────────────────────
+
+model Platform {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  problems Problem[]
+
+  @@map("platforms")
+}
+
+// ─── Tag (flat – no hierarchy) ──────────────────────────────────────────────────
+
+model Tag {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  problemTags ProblemTag[]
+
+  @@map("tags")
+}
+
+// ─── Problem ────────────────────────────────────────────────────────────────────
+
+model Problem {
+  id                   String   @id @default(uuid())
+  title                String
+  url                  String
+  platformProblemId    String?
+  platformDifficulty   String?
+  normalizedDifficulty Int?
+  simplifiedStatement  String?
+  notes                String?
+  isGreatProblem       Boolean  @default(false)
+
+  // Drill fields
+  drillType        String?   // "mindsolve" | "implement"
+  drillNotes       String?
+  drillCompletions Int       @default(0)
+  lastDrilledAt    DateTime?
+
+  platformId String
+  platform   Platform @relation(fields: [platformId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  problemTags ProblemTag[]
+  solutions   Solution[]
+
+  @@map("problems")
+}
+
+// ─── ProblemTag (join table) ────────────────────────────────────────────────────
+
+model ProblemTag {
+  id            String   @id @default(uuid())
+  
+  problemId     String
+  problem       Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  tagId         String
+  tag           Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  role          String?   // "core" | "secondary" | "mention"
+  tagDifficulty Int?
+  isInstructive Boolean?
+  createdAt     DateTime @default(now())
+
+  @@unique([problemId, tagId])
+  @@map("problem_tags")
+}
+
+// ─── Solution ───────────────────────────────────────────────────────────────────
+
+model Solution {
+  id            String   @id @default(uuid())
+  language      String   // "Python" | "Cpp" | "JavaScript" etc.
+  submissionUrl String?
+  githubUrl     String?
+
+  problemId String
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("solutions")
+}
