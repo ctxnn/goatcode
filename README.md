@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🐐 GoatCode
 
-## Getting Started
+**GoatCode** is a local-first programming problems dashboard built to help you track your coding problems, capture insights, and build a review bank that survives forgetfulness. 
 
-First, run the development server:
+Whether you're practicing on LeetCode, Codeforces, CSES, or AtCoder, GoatCode provides a sleek, dark-themed glassmorphism interface to save your problem links, tag them by topic/difficulty, and attach your GitHub solution links directly.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Centralized Problem Tracking**: Manage your competitive programming and interview prep problems in one place.
+- **Platform Support**: Pre-configured with major platforms (LeetCode, Codeforces, CSES, AtCoder, CodeChef, USACO, SPOJ, UVa).
+- **Drill System**: Track how many times you've reviewed a problem and surface "Great Picks" for your next study session.
+- **Rich Tagging**: Organize problems with a flat tag system including topics, difficulties, and roles.
+- **Local-First & Fast**: Built with an embedded SQLite database. Your data stays with you.
+- **Automated SQLite Backups**: Rest easy with automatic timestamped database backups upon problem creation or deletion.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠 Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Database**: [SQLite](https://sqlite.org/) + [Prisma ORM](https://www.prisma.io/)
+- **API Layer**: [tRPC v11](https://trpc.io/) for end-to-end typesafe APIs
+- **State Management**: [TanStack Query v5](https://tanstack.com/query) (React Query)
+- **Styling**: Vanilla CSS with a custom Glassmorphism UI
+- **Language**: TypeScript
 
-## Learn More
+## 📦 Getting Started
 
-To learn more about Next.js, take a look at the following resources:
+### Prerequisites
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Node.js (v18 or newer recommended)
+- npm
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Installation
 
-## Deploy on Vercel
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/ctxnn/goatcode.git
+   cd goatcode
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Initialize the Database:**
+   Push the Prisma schema to create your local SQLite database and run the seed script to populate default platforms.
+   ```bash
+   npx prisma db push
+   npm run prisma:seed
+   ```
+
+4. **Start the Development Server:**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000) to view the dashboard and `http://localhost:3000/admin` to manage your problems.
+
+## 🗄️ Database Backups
+
+GoatCode automatically backs up your SQLite database to the `backups/sqlite/` folder whenever you create or delete a problem. 
+
+You can manually manage backups using the provided npm scripts:
+- **`npm run db:backup`**: Create a manual backup.
+- **`npm run db:backups:list`**: List all available backups.
+- **`npm run db:restore`**: Restore the database from the most recent backup.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/ctxnn/goatcode/issues) if you want to contribute.
+
+## 📝 License
+
+This project is licensed under the MIT License.
