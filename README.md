@@ -22,6 +22,17 @@ Whether you're practicing on LeetCode, Codeforces, CSES, or AtCoder, GoatCode pr
 - **Styling**: Vanilla CSS with a custom Glassmorphism UI
 - **Language**: TypeScript
 
+## 📖 Example Workflow (The "Two Sum" Flow)
+
+Imagine you've just submitted an accepted solution to "Two Sum" on LeetCode and you've saved your code to a repository on your GitHub. Here is exactly how you record it in GoatCode:
+
+1. **Open the Entry Form:** Navigate to `http://localhost:3000/admin` and click **Add Problem**.
+2. **Core Details:** Select `LeetCode` from the platform dropdown, type `Two Sum` for the title, and paste the LeetCode URL. Optionally add a normalized difficulty (e.g. `2`).
+3. **The "Aha!" Moment:** Instead of writing out the code, type the exact insight you needed to solve it optimally. For example: *"Instead of a nested loop, use a Hash Map to store `target - current_number` so you only have to pass through the array once. O(n) time."*
+4. **Tags:** Scroll down and check `Array` and `Hash Table`.
+5. **Link to GitHub:** Under the Solution section, set the language to `Python` (or your preferred language) and paste the direct link to the specific file in your GitHub repo where you saved the Two Sum code.
+6. **Save & Review Later:** Click **Save Problem**. Fast forward three months, when you filter by `Hash Table`, you'll instantly see your "Aha Moment", click straight through to your code on GitHub, and use the **Drill** button to record that you reviewed it!
+
 ## 📦 Getting Started
 
 ### Prerequisites
