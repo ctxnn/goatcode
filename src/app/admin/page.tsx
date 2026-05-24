@@ -4,6 +4,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import ProblemForm from "./_components/problem-form";
+import { LocalSolutionViewer } from "./_components/local-solution-viewer";
 import { trpc } from "../providers";
 
 type AdminTab = "problems" | "tags" | "platforms";
@@ -260,18 +261,27 @@ export default function AdminPage() {
                       {problem.notes && <div className="problem-notes">{problem.notes}</div>}
 
                       <div className="problem-footer">
-                        <div className="problem-solutions">
+                        <div className="problem-solutions" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                           {problem.solutions?.length ? (
                             problem.solutions.map((solution) => (
-                              <a
-                                key={solution.id}
-                                href={solution.githubUrl || solution.submissionUrl || "#"}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-link"
-                              >
-                                Code ({solution.language})
-                              </a>
+                              <div key={solution.id} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                                  <span className="badge">Code ({solution.language})</span>
+                                  {(solution.githubUrl || solution.submissionUrl) && (
+                                    <a
+                                      href={solution.githubUrl || solution.submissionUrl || "#"}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-link text-sm"
+                                    >
+                                      External Link ↗
+                                    </a>
+                                  )}
+                                </div>
+                                {solution.localPath && (
+                                  <LocalSolutionViewer localPath={solution.localPath} />
+                                )}
+                              </div>
                             ))
                           ) : (
                             <span className="muted-text">No solution link</span>

@@ -6,6 +6,7 @@ import { trpc } from "../../providers";
 export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
   const { data: platforms } = trpc.platform.list.useQuery();
   const { data: tags } = trpc.tag.list.useQuery();
+  const { data: unlinkedFiles } = trpc.solution.getUnlinkedFiles.useQuery();
   const createProblem = trpc.problem.create.useMutation({
     onSuccess,
   });
@@ -24,6 +25,7 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
     isGreatProblem: false,
     githubUrl: "",
     submissionUrl: "",
+    localPath: "",
     language: "C++",
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -56,12 +58,13 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
             role: "core",
           }))
         : undefined,
-      solutions: formData.githubUrl || formData.submissionUrl
+      solutions: formData.githubUrl || formData.submissionUrl || formData.localPath
         ? [
             {
               language: formData.language.trim() || "C++",
               githubUrl: formData.githubUrl.trim() || undefined,
               submissionUrl: formData.submissionUrl.trim() || undefined,
+              localPath: formData.localPath.trim() || undefined,
             },
           ]
         : undefined,
@@ -233,6 +236,19 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
                 value={formData.language}
                 onChange={(event) => setFormData({ ...formData, language: event.target.value })}
               />
+            </div>
+            <div className="form-group">
+              <label className="label">Local File (Auto-detected)</label>
+              <select
+                className="select"
+                value={formData.localPath}
+                onChange={(event) => setFormData({ ...formData, localPath: event.target.value })}
+              >
+                <option value="">None (Select an unlinked file)</option>
+                {(unlinkedFiles ?? []).map(file => (
+                  <option key={file} value={file}>{file}</option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label className="label">GitHub URL</label>

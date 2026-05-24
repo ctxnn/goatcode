@@ -14,6 +14,7 @@ export const solutionRouter = router({
         language: z.string(),
         submissionUrl: z.string().url().optional().or(z.literal("")),
         githubUrl: z.string().url().optional().or(z.literal("")),
+        localPath: z.string().optional().or(z.literal("")),
       })
     )
     .mutation(async ({ input }) => {
@@ -21,11 +22,24 @@ export const solutionRouter = router({
         ...input,
         submissionUrl: input.submissionUrl || undefined,
         githubUrl: input.githubUrl || undefined,
+        localPath: input.localPath || undefined,
       });
     }),
 
   delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
     await solutionService.deleteSolution(input.id);
     return { success: true };
+  }),
+
+  getUnlinkedFiles: publicProcedure.query(async () => {
+    return solutionService.getUnlinkedFiles();
+  }),
+
+  readFile: publicProcedure.input(z.object({ localPath: z.string() })).query(async ({ input }) => {
+    return solutionService.readLocalFile(input.localPath);
+  }),
+
+  openInEditor: publicProcedure.input(z.object({ localPath: z.string() })).mutation(async ({ input }) => {
+    return solutionService.openInVSCode(input.localPath);
   }),
 });

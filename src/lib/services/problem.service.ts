@@ -24,6 +24,7 @@ export type ProblemInput = {
     language: string;
     submissionUrl?: string;
     githubUrl?: string;
+    localPath?: string;
   }>;
 };
 
@@ -103,6 +104,7 @@ export async function createProblem(data: ProblemInput) {
           language: s.language,
           submissionUrl: s.submissionUrl,
           githubUrl: s.githubUrl,
+          localPath: s.localPath,
         })),
       } : undefined,
     },
@@ -150,6 +152,7 @@ export async function updateProblem(id: string, data: Partial<ProblemInput>) {
               language: s.language,
               submissionUrl: s.submissionUrl,
               githubUrl: s.githubUrl,
+              localPath: s.localPath,
             })),
           },
         }),
