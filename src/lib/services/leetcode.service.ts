@@ -1,3 +1,5 @@
+import { type PlatformProblemMeta, type PlatformTopicTag } from "./platform-meta";
+
 const LEETCODE_GRAPHQL = "https://leetcode.com/graphql";
 
 const QUESTION_QUERY = `
@@ -17,22 +19,8 @@ const QUESTION_QUERY = `
   }
 `;
 
-export type LeetCodeTopicTag = {
-  name: string;
-  slug: string;
-};
-
-export type LeetCodeProblemMeta = {
-  title: string;
-  url: string;
-  titleSlug: string;
-  platformSlug: "leetcode";
-  platformProblemId: string;
-  platformDifficulty: string;
-  normalizedDifficulty: number;
-  simplifiedStatement?: string;
-  topicTags: LeetCodeTopicTag[];
-};
+export type { PlatformTopicTag as LeetCodeTopicTag };
+export type { PlatformProblemMeta as LeetCodeProblemMeta };
 
 const DIFFICULTY_TO_NORMALIZED: Record<string, number> = {
   Easy: 3,
@@ -82,7 +70,7 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-export async function fetchLeetCodeProblem(urlOrSlug: string): Promise<LeetCodeProblemMeta> {
+export async function fetchLeetCodeProblem(urlOrSlug: string): Promise<PlatformProblemMeta> {
   const slug = parseLeetCodeSlug(urlOrSlug);
   if (!slug) {
     throw new Error("Not a valid LeetCode problem URL. Example: https://leetcode.com/problems/two-sum/");
@@ -137,7 +125,6 @@ export async function fetchLeetCodeProblem(urlOrSlug: string): Promise<LeetCodeP
   return {
     title: question.title,
     url: `https://leetcode.com/problems/${question.titleSlug}/`,
-    titleSlug: question.titleSlug,
     platformSlug: "leetcode",
     platformProblemId: question.questionFrontendId || question.questionId,
     platformDifficulty: question.difficulty,

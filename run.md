@@ -49,17 +49,20 @@ not “a problem you solved recently.”
 > Grade by *how easily you recalled*, not by how hard the problem is. A “Hard” LeetCode problem
 > you now recall instantly should be graded **Easy**.
 
-## Adding a problem (LeetCode pull-in)
+## Adding a problem (platform pull-in)
 
 1. Click **Add Problem** (or the Problems tab).
-2. Paste a LeetCode URL, e.g. `https://leetcode.com/problems/two-sum/`.
-3. Click **Fetch LeetCode** — autofills title, platform, difficulty, normalized difficulty,
-   a short statement, and **topic tags** (missing tags are auto-created; toggle off to disable).
+2. Paste a problem URL from a supported platform and click **Fetch Problem**:
+   - **LeetCode** — `https://leetcode.com/problems/two-sum/` (also `leetcode.cn`, or a bare slug). Pulls title, difficulty, a short statement, and topic tags.
+   - **Codeforces** — `https://codeforces.com/problemset/problem/1462/A` or `.../contest/1462/problem/A` (also bare `1462A`). Pulls title, rating, and tags.
+   - **AtCoder** — `https://atcoder.jp/contests/abc123/tasks/abc123_a`. Pulls title, difficulty, and tags.
+3. The form autofills title, platform, difficulty, normalized difficulty, and **topic tags**
+   (missing tags are auto-created; toggle off to disable).
 4. Add your **Notes / Aha Moment** and solution links — these are the valuable part.
 5. Save. The problem is enrolled in SRS and becomes **due immediately** (one-time first review).
 
-Supported URL forms: `https://leetcode.com/problems/<slug>/`, `leetcode.cn/...`, or a bare slug.
-Non-LeetCode / invalid URLs show a clear error and never write to the database.
+Non-supported / invalid URLs show a clear error and never write to the database.
+Other platforms can still be added manually (fill in the fields by hand).
 
 ## Backups & restore
 

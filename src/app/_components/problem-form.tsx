@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { trpc } from "../providers";
-
-function isLeetCodeLike(url: string) {
-  return /leetcode\.(com|cn)\/problems\//i.test(url) || /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(url.trim());
-}
+import { detectPlatformSlug } from "../../lib/platform-detect";
 
 export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
   const utils = trpc.useUtils();
@@ -17,7 +14,7 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
     onSuccess,
   });
   const createTag = trpc.tag.create.useMutation();
-  const fetchLeetCode = trpc.problem.fetchFromLeetCode.useMutation();
+  const fetchProblem = trpc.problem.fetchFromUrl.useMutation();
 
   const [formData, setFormData] = useState({
     platformId: "",
@@ -47,7 +44,7 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
     );
   };
 
-  const handleFetchLeetCode = async () => {
+  const handleFetchProblem = async () => {
     setFetchError("");
     setFetchMessage("");
     if (!formData.url.trim()) {
@@ -56,12 +53,12 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
     }
 
     try {
-      const meta = await fetchLeetCode.mutateAsync({ url: formData.url.trim() });
-      const leetcodePlatform = (platforms ?? []).find((p) => p.slug === "leetcode");
+      const meta = await fetchProblem.mutateAsync({ url: formData.url.trim() });
+      const targetPlatform = (platforms ?? []).find((p) => p.slug === meta.platformSlug);
 
       setFormData((current) => ({
         ...current,
-        platformId: leetcodePlatform?.id || current.platformId,
+        platformId: targetPlatform?.id || current.platformId,
         title: meta.title,
         url: meta.url,
         platformProblemId: meta.platformProblemId,
@@ -86,10 +83,10 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
       await refetchTags();
       await utils.tag.list.invalidate();
       setFetchMessage(
-        `Pulled “${meta.title}” (${meta.platformDifficulty}) with ${meta.topicTags.length} topic tag(s). Add your aha note, then save.`
+        `Pulled “${meta.title}” (${meta.platformDifficulty || meta.platformSlug}) with ${meta.topicTags.length} topic tag(s). Add your aha note, then save.`
       );
     } catch (error) {
-      setFetchError(error instanceof Error ? error.message : "Failed to fetch from LeetCode");
+      setFetchError(error instanceof Error ? error.message : "Failed to fetch problem metadata");
     }
   };
 
@@ -174,7 +171,7 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
               <input
                 type="url"
                 className="input"
-                placeholder="https://leetcode.com/problems/two-sum/"
+                placeholder="https://leetcode.com/problems/two-sum/  ·  codeforces.com/problemset/problem/1462/A  ·  atcoder.jp/contests/abc123/tasks/abc123_a"
                 value={formData.url}
                 onChange={(event) => setFormData({ ...formData, url: event.target.value })}
                 required
@@ -182,11 +179,11 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
               <button
                 type="button"
                 className="btn btn-leetcode"
-                onClick={handleFetchLeetCode}
-                disabled={fetchLeetCode.isPending || !isLeetCodeLike(formData.url)}
-                title="Fetch title, difficulty, and tags from LeetCode"
+                onClick={handleFetchProblem}
+                disabled={fetchProblem.isPending || !detectPlatformSlug(formData.url)}
+                title="Fetch title, difficulty, and tags from LeetCode / Codeforces / AtCoder"
               >
-                {fetchLeetCode.isPending ? "Fetching…" : "Fetch LeetCode"}
+                {fetchProblem.isPending ? "Fetching…" : "Fetch Problem"}
               </button>
             </div>
             <label className="toggle-row fetch-tag-toggle">

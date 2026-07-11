@@ -1,7 +1,7 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import * as problemService from "../../lib/services/problem.service";
-import { fetchLeetCodeProblem } from "../../lib/services/leetcode.service";
+import { fetchProblemByUrl } from "../../lib/services/problem-fetch";
 import { transformProblem } from "../../lib/transforms";
 
 const reviewGradeSchema = z.enum(["again", "hard", "good", "easy"]);
@@ -181,9 +181,9 @@ export const problemRouter = router({
     return transformProblem(problem);
   }),
 
-  fetchFromLeetCode: publicProcedure
+  fetchFromUrl: publicProcedure
     .input(z.object({ url: z.string().min(1) }))
     .mutation(async ({ input }) => {
-      return fetchLeetCodeProblem(input.url);
+      return fetchProblemByUrl(input.url);
     }),
 });
