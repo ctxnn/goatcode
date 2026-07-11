@@ -1,41 +1,40 @@
 /* ============================================================
-   GoatCode — minimal Gruvbox theme (flat, no glass)
-   Palette: https://github.com/morhetz/gruvbox
+   GoatCode — minimal monochrome theme (white / black, flat)
    ============================================================ */
 
 :root {
-  --bg0: #1d2021;
-  --bg0-soft: #282828;
-  --bg1: #3c3836;
-  --bg2: #504945;
-  --bg3: #665c54;
-  --bg4: #7c6f64;
+  --bg0: #ffffff;
+  --bg0-soft: #fafafa;
+  --bg1: #f2f2f2;
+  --bg2: #e5e5e5;
+  --bg3: #d4d4d4;
+  --bg4: #a3a3a3;
 
-  --fg0: #fbf1c7;
-  --fg1: #ebdbb2;
-  --fg2: #d5c4a1;
-  --fg3: #bdae93;
-  --fg4: #a89984;
+  --fg0: #000000;
+  --fg1: #1a1a1a;
+  --fg2: #404040;
+  --fg3: #666666;
+  --fg4: #999999;
 
-  --red: #fb4934;
-  --red-bright: #cc241d;
-  --green: #b8bb26;
-  --green-bright: #98971a;
-  --yellow: #fabd2f;
-  --yellow-bright: #d79921;
-  --blue: #83a598;
-  --blue-bright: #458588;
-  --purple: #d3869b;
-  --purple-bright: #b16286;
-  --aqua: #8ec07c;
-  --aqua-bright: #689d6a;
-  --orange: #fe8019;
-  --orange-bright: #d65d0e;
-  --gray: #928374;
+  --red: #000000;
+  --red-bright: #333333;
+  --green: #000000;
+  --green-bright: #333333;
+  --yellow: #555555;
+  --yellow-bright: #404040;
+  --blue: #000000;
+  --blue-bright: #333333;
+  --purple: #555555;
+  --purple-bright: #404040;
+  --aqua: #555555;
+  --aqua-bright: #777777;
+  --orange: #666666;
+  --orange-bright: #888888;
+  --gray: #999999;
 
-  --radius: 6px;
+  --radius: 4px;
   --border: 1px solid var(--bg2);
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
   --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 
