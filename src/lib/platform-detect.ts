@@ -1,4 +1,4 @@
-export type FetchPlatform = "leetcode" | "codeforces" | "atcoder";
+export type FetchPlatform = "leetcode" | "codeforces" | "atcoder" | "cses" | "usaco";
 
 /**
  * Detect which supported platform a problem URL (or bare slug) belongs to.
@@ -12,6 +12,8 @@ export function detectPlatformSlug(url: string): FetchPlatform | null {
   if (/leetcode\.(com|cn)\//i.test(trimmed)) return "leetcode";
   if (/codeforces\.com\//i.test(trimmed)) return "codeforces";
   if (/atcoder\.jp\//i.test(trimmed)) return "atcoder";
+  if (/cses\.fi\//i.test(trimmed)) return "cses";
+  if (/usaco\.org\//i.test(trimmed)) return "usaco";
 
   // Bare identifiers
   if (/^\d+[a-z]\d*$/i.test(trimmed)) return "codeforces"; // 1462a

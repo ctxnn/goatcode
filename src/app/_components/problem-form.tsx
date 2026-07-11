@@ -171,7 +171,7 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
               <input
                 type="url"
                 className="input"
-                placeholder="https://leetcode.com/problems/two-sum/  ·  codeforces.com/problemset/problem/1462/A  ·  atcoder.jp/contests/abc123/tasks/abc123_a"
+                placeholder="leetcode.com/problems/two-sum/  ·  codeforces.com/problemset/problem/1462/A  ·  atcoder.jp/contests/abc123/tasks/abc123_a  ·  cses.fi/problemset/task/1068/  ·  usaco.org/index.php?page=viewproblem2&cpid=1"
                 value={formData.url}
                 onChange={(event) => setFormData({ ...formData, url: event.target.value })}
                 required

@@ -6,7 +6,7 @@
 
 - **Problem vault** — platforms, tags, notes, solution links (GitHub / local files)
 - **Spaced repetition** — Again / Hard / Good / Easy scheduling (SM-2 style, no Anki)
-- **Platform pull-in** — paste a LeetCode / Codeforces / AtCoder URL → auto-fetch title, difficulty, and tags
+- **Platform pull-in** — paste a LeetCode / Codeforces / AtCoder / CSES / USACO URL → auto-fetch title, difficulty, and tags
 - **Local SQLite** — your data stays on disk; automatic backups on writes
 
 ## What “due” means
@@ -40,7 +40,7 @@ scripts reference, see [run.md](./run.md).
 
 ## Typical workflow
 
-1. Solve a problem on LeetCode / Codeforces / AtCoder.
+1. Solve a problem on LeetCode / Codeforces / AtCoder / CSES / USACO.
 2. **Add Problem** → paste the problem URL → **Fetch Problem** (autofills title, difficulty, tags).
 3. Write your aha note → save.
 4. Open **Review** → re-solve from notes → grade yourself.

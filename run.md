@@ -56,10 +56,16 @@ not “a problem you solved recently.”
    - **LeetCode** — `https://leetcode.com/problems/two-sum/` (also `leetcode.cn`, or a bare slug). Pulls title, difficulty, a short statement, and topic tags.
    - **Codeforces** — `https://codeforces.com/problemset/problem/1462/A` or `.../contest/1462/problem/A` (also bare `1462A`). Pulls title, rating, and tags.
    - **AtCoder** — `https://atcoder.jp/contests/abc123/tasks/abc123_a`. Pulls title, difficulty, and tags.
+   - **CSES** — `https://cses.fi/problemset/task/1068/`. Pulls the title (no public difficulty/tags).
+   - **USACO** — `https://usaco.org/index.php?page=viewproblem2&cpid=1`. Pulls the title when reachable.
 3. The form autofills title, platform, difficulty, normalized difficulty, and **topic tags**
    (missing tags are auto-created; toggle off to disable).
 4. Add your **Notes / Aha Moment** and solution links — these are the valuable part.
 5. Save. The problem is enrolled in SRS and becomes **due immediately** (one-time first review).
+
+> **Network notes:** AtCoder's metadata API and USACO's site sit behind Cloudflare and may
+> block server-side fetches (they work fine in a real browser). If a fetch fails, the app
+> shows a clear message and you can add the problem manually — the URL is still kept.
 
 Non-supported / invalid URLs show a clear error and never write to the database.
 Other platforms can still be added manually (fill in the fields by hand).
