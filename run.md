@@ -63,9 +63,23 @@ not “a problem you solved recently.”
 4. Add your **Notes / Aha Moment** and solution links — these are the valuable part.
 5. Save. The problem is enrolled in SRS and becomes **due immediately** (one-time first review).
 
-> **Network notes:** AtCoder's metadata API and USACO's site sit behind Cloudflare and may
-> block server-side fetches (they work fine in a real browser). If a fetch fails, the app
-> shows a clear message and you can add the problem manually — the URL is still kept.
+> ### ⚠️ Why AtCoder and USACO auto-fetch often fail (read this)
+>
+> The fetch runs from the GoatCode **server** (Node `fetch`), not your browser. Two platforms sit
+> behind anti-bot protection and will block that server-side request:
+>
+> - **AtCoder** — uses the `kenkoooo` v3 API (`kenkoooo.com/atcoder/api/v3/problem?id=...`) for
+>   title / difficulty / tags. **That API returns 404 / is Cloudflare-blocked for server-side
+>   fetches from many networks** (it failed from the dev sandbox). When blocked, the app throws a
+>   clear error and you add the problem manually.
+> - **USACO** — `usaco.org` serves a **Cloudflare challenge** page to automated requests, so the
+>   server fetch can never read the problem. The app detects this and reports:
+>   *"USACO blocked this request (Cloudflare challenge). Please add the problem manually."*
+>
+> **LeetCode, Codeforces, and CSES** currently allow server-side fetches and work reliably.
+> **CSES and USACO also have no public difficulty/tags**, so even on success they only autofill
+> the **title** (you set difficulty/tags yourself). A failed fetch **never writes to the
+> database** — it only shows an error, and the URL you pasted is kept in the form.
 
 Non-supported / invalid URLs show a clear error and never write to the database.
 Other platforms can still be added manually (fill in the fields by hand).

@@ -53,8 +53,8 @@ flowchart TD
     A[Open http://localhost:3000] --> B{Which tab?}
 
     B -->|Problems| C[Add Problem]
-    C --> D[Paste LeetCode URL]
-    D --> E[Click Fetch LeetCode]
+    C --> D[Paste a problem URL]
+    D --> E[Click Fetch Problem]
     E --> F[Auto-fills title / difficulty / tags]
     F --> G[Add your aha-note + solution link]
     G --> H[Save → becomes DUE immediately]
@@ -87,7 +87,7 @@ flowchart TD
 | Tab        | What you do                                                                 |
 |------------|-----------------------------------------------------------------------------|
 | Review     | Daily queue. Recall → grade Again/Hard/Good/Easy. Pause/Resume, Upcoming (7d), due badge. |
-| Problems   | Add (LeetCode pull-in), browse, grade, Reset SRS, Delete. Shows "Due" / "in 5d" / "Paused". |
+| Problems   | Add (platform pull-in), browse, grade, Reset SRS, Delete. Shows "Due" / "in 5d" / "Paused". |
 | Tags       | Topics used to organize problems (auto-created from LeetCode on fetch).     |
 | Platforms  | LeetCode, Codeforces, CSES, AtCoder, …                                      |
 
@@ -119,6 +119,24 @@ The SM-2 scheduler has dependency-free unit tests (no extra deps — runs via `t
 ```bash
 npx tsx scripts/test-srs.ts
 ```
+
+## Known limitations (platform pull-in)
+
+The **Fetch Problem** button auto-detects the platform and pulls metadata. Behavior varies by
+platform because the data sources are third-party and some sit behind anti-bot protection:
+
+| Platform | Auto-fetch | Notes |
+|----------|-----------|-------|
+| **LeetCode** | ✅ Reliable | Title, difficulty, statement, topic tags. |
+| **Codeforces** | ✅ Reliable | Title, rating, tags (via `contest.problems`; falls back to `problemset.problems`). |
+| **CSES** | ⚠️ Title only | No public difficulty/tags — only the title is scraped from the task page. |
+| **AtCoder** | ❌ Often blocked | Uses the `kenkoooo` v3 API for title/difficulty/tags. **That API is behind Cloudflare** and returns 404 / is blocked for server-side fetches from many networks (it failed from the dev sandbox). When it fails, the app shows a clear error and you add the problem manually. |
+| **USACO** | ❌ Blocked | `usaco.org` sits behind a **Cloudflare challenge** that blocks automated/server-side fetches entirely. The pull-in detects this and reports *"USACO blocked this request (Cloudflare challenge). Please add the problem manually."* You then paste the title yourself. |
+
+**Why this happens:** the fetch runs from the GoatCode **server** (Node `fetch`), not your browser,
+so Cloudflare challenges that a human browser would solve automatically will instead block the
+request. LeetCode, Codeforces, and CSES currently allow server-side fetches; AtCoder and USACO
+generally do not. A failed fetch **never writes to the database** — it just shows an error.
 
 ## Tech stack
 
