@@ -46,6 +46,53 @@ scripts reference, see [run.md](./run.md).
 4. Open **Review** → re-solve from notes → grade yourself.
 5. Come back later when items mature back into the due list.
 
+### How to use the app
+
+```mermaid
+flowchart TD
+    A[Open http://localhost:3000] --> B{Which tab?}
+
+    B -->|Problems| C[Add Problem]
+    C --> D[Paste LeetCode URL]
+    D --> E[Click Fetch LeetCode]
+    E --> F[Auto-fills title / difficulty / tags]
+    F --> G[Add your aha-note + solution link]
+    G --> H[Save → becomes DUE immediately]
+
+    B -->|Review| I[See Due list + count badge]
+    I --> J[RECALL from memory - don't peek]
+    J --> K[Open link/notes to check]
+    K --> L{Grade the recall}
+    L -->|Again| M[Forgot → due ~1d, ease down]
+    L -->|Hard| N[Struggle → shorter gap]
+    L -->|Good| O[Solid → 1d to 3d to x ease]
+    L -->|Easy| P[Trivial → longer gap]
+    M --> Q[Leaves queue, returns later]
+    N --> Q
+    O --> Q
+    P --> Q
+
+    Q --> R{Due again later?}
+    R -->|yes| I
+    R -->|Paused| S[Pause SRS → excluded]
+    S --> T[Resume → due again]
+    T --> I
+
+    B -->|Tags| U[Create / manage topic tags]
+    B -->|Platforms| V[Add platform catalogs]
+```
+
+**Tab / action map**
+
+| Tab        | What you do                                                                 |
+|------------|-----------------------------------------------------------------------------|
+| Review     | Daily queue. Recall → grade Again/Hard/Good/Easy. Pause/Resume, Upcoming (7d), due badge. |
+| Problems   | Add (LeetCode pull-in), browse, grade, Reset SRS, Delete. Shows "Due" / "in 5d" / "Paused". |
+| Tags       | Topics used to organize problems (auto-created from LeetCode on fetch).     |
+| Platforms  | LeetCode, Codeforces, CSES, AtCoder, …                                      |
+
+**The core loop:** Solve → Save (Fetch) → it's Due → Recall → Grade → wait → Due again
+
 ### Grade buttons
 
 | Grade | Meaning | Scheduling (simplified) |
