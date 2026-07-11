@@ -35,7 +35,8 @@ npm run dev
 
 Open **http://localhost:3000** (personal workspace — Review, Problems, Tags, Platforms).
 
-Legacy `/admin` redirects to `/`.
+Legacy `/admin` redirects to `/`. For full setup, daily usage, the recall method, backups, and a
+scripts reference, see [run.md](./run.md).
 
 ## Typical workflow
 
@@ -62,6 +63,14 @@ Automatic backups to `backups/sqlite/` on create/update/delete/review.
 npm run db:backup
 npm run db:backups:list
 npm run db:restore
+```
+
+## Tests
+
+The SM-2 scheduler has dependency-free unit tests (no extra deps — runs via `tsx`):
+
+```bash
+npx tsx scripts/test-srs.ts
 ```
 
 ## Tech stack
