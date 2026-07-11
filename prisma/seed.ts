@@ -1,4 +1,5 @@
 import { prisma } from "../src/lib/prisma";
+import { backfillNullNextReview } from "../src/lib/services/problem.service";
 
 const PLATFORMS = [
   { slug: "leetcode", name: "Leetcode" },
@@ -24,6 +25,11 @@ async function main() {
   }
 
   console.log("✅ Seed complete.");
+
+  const backfilled = await backfillNullNextReview();
+  if (backfilled > 0) {
+    console.log(`🔁 Backfilled ${backfilled} existing problem(s) into the review queue (due now).`);
+  }
 }
 
 main()

@@ -1,15 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { trpc } from "../../providers";
+import { trpc } from "../providers";
+
+function isLeetCodeLike(url: string) {
+  return /leetcode\.(com|cn)\/problems\//i.test(url) || /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(url.trim());
+}
 
 export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
+  const utils = trpc.useUtils();
   const { data: platforms } = trpc.platform.list.useQuery();
-  const { data: tags } = trpc.tag.list.useQuery();
+  const { data: tags, refetch: refetchTags } = trpc.tag.list.useQuery();
   const { data: unlinkedFiles } = trpc.solution.getUnlinkedFiles.useQuery();
+
   const createProblem = trpc.problem.create.useMutation({
     onSuccess,
   });
+  const createTag = trpc.tag.create.useMutation();
+  const fetchLeetCode = trpc.problem.fetchFromLeetCode.useMutation();
 
   const [formData, setFormData] = useState({
     platformId: "",
@@ -29,11 +37,60 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
     language: "C++",
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [createMissingTags, setCreateMissingTags] = useState(true);
+  const [fetchMessage, setFetchMessage] = useState("");
+  const [fetchError, setFetchError] = useState("");
 
   const toggleTag = (tagId: string) => {
     setSelectedTags((current) =>
       current.includes(tagId) ? current.filter((id) => id !== tagId) : [...current, tagId]
     );
+  };
+
+  const handleFetchLeetCode = async () => {
+    setFetchError("");
+    setFetchMessage("");
+    if (!formData.url.trim()) {
+      setFetchError("Paste a LeetCode problem URL first.");
+      return;
+    }
+
+    try {
+      const meta = await fetchLeetCode.mutateAsync({ url: formData.url.trim() });
+      const leetcodePlatform = (platforms ?? []).find((p) => p.slug === "leetcode");
+
+      setFormData((current) => ({
+        ...current,
+        platformId: leetcodePlatform?.id || current.platformId,
+        title: meta.title,
+        url: meta.url,
+        platformProblemId: meta.platformProblemId,
+        platformDifficulty: meta.platformDifficulty,
+        normalizedDifficulty: String(meta.normalizedDifficulty),
+        simplifiedStatement: meta.simplifiedStatement || current.simplifiedStatement,
+      }));
+
+      let tagList = tags ?? [];
+      const selected: string[] = [];
+
+      for (const topic of meta.topicTags) {
+        let existing = tagList.find((t) => t.slug === topic.slug || t.name.toLowerCase() === topic.name.toLowerCase());
+        if (!existing && createMissingTags) {
+          existing = await createTag.mutateAsync({ name: topic.name });
+          tagList = [...tagList, existing];
+        }
+        if (existing) selected.push(existing.id);
+      }
+
+      setSelectedTags(selected);
+      await refetchTags();
+      await utils.tag.list.invalidate();
+      setFetchMessage(
+        `Pulled “${meta.title}” (${meta.platformDifficulty}) with ${meta.topicTags.length} topic tag(s). Add your aha note, then save.`
+      );
+    } catch (error) {
+      setFetchError(error instanceof Error ? error.message : "Failed to fetch from LeetCode");
+    }
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -58,16 +115,17 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
             role: "core",
           }))
         : undefined,
-      solutions: formData.githubUrl || formData.submissionUrl || formData.localPath
-        ? [
-            {
-              language: formData.language.trim() || "C++",
-              githubUrl: formData.githubUrl.trim() || undefined,
-              submissionUrl: formData.submissionUrl.trim() || undefined,
-              localPath: formData.localPath.trim() || undefined,
-            },
-          ]
-        : undefined,
+      solutions:
+        formData.githubUrl || formData.submissionUrl || formData.localPath
+          ? [
+              {
+                language: formData.language.trim() || "C++",
+                githubUrl: formData.githubUrl.trim() || undefined,
+                submissionUrl: formData.submissionUrl.trim() || undefined,
+                localPath: formData.localPath.trim() || undefined,
+              },
+            ]
+          : undefined,
     });
   };
 
@@ -110,15 +168,37 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group form-group-span-2">
             <label className="label">Problem URL *</label>
-            <input
-              type="url"
-              className="input"
-              value={formData.url}
-              onChange={(event) => setFormData({ ...formData, url: event.target.value })}
-              required
-            />
+            <div className="url-fetch-row">
+              <input
+                type="url"
+                className="input"
+                placeholder="https://leetcode.com/problems/two-sum/"
+                value={formData.url}
+                onChange={(event) => setFormData({ ...formData, url: event.target.value })}
+                required
+              />
+              <button
+                type="button"
+                className="btn btn-leetcode"
+                onClick={handleFetchLeetCode}
+                disabled={fetchLeetCode.isPending || !isLeetCodeLike(formData.url)}
+                title="Fetch title, difficulty, and tags from LeetCode"
+              >
+                {fetchLeetCode.isPending ? "Fetching…" : "Fetch LeetCode"}
+              </button>
+            </div>
+            <label className="toggle-row fetch-tag-toggle">
+              <input
+                type="checkbox"
+                checked={createMissingTags}
+                onChange={(event) => setCreateMissingTags(event.target.checked)}
+              />
+              Auto-create missing topic tags from LeetCode
+            </label>
+            {fetchMessage && <p className="fetch-success">{fetchMessage}</p>}
+            {fetchError && <p className="fetch-error">{fetchError}</p>}
           </div>
 
           <div className="form-group">
@@ -126,7 +206,7 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
             <input
               type="text"
               className="input"
-              placeholder="ABC 300 E, 1, 1200A"
+              placeholder="1, ABC 300 E, 1200A"
               value={formData.platformProblemId}
               onChange={(event) => setFormData({ ...formData, platformProblemId: event.target.value })}
             />
@@ -172,6 +252,7 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
           <textarea
             className="textarea"
             rows={4}
+            placeholder="The insight that made the solution click…"
             value={formData.notes}
             onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
           />
@@ -211,7 +292,9 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
                 {tag.name}
               </label>
             ))}
-            {(tags ?? []).length === 0 && <span className="muted-text">Create tags from the Tags tab to use them here.</span>}
+            {(tags ?? []).length === 0 && (
+              <span className="muted-text">Create tags from the Tags tab, or fetch from LeetCode.</span>
+            )}
           </div>
         </div>
 
@@ -245,8 +328,10 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
                 onChange={(event) => setFormData({ ...formData, localPath: event.target.value })}
               >
                 <option value="">None (Select an unlinked file)</option>
-                {(unlinkedFiles ?? []).map(file => (
-                  <option key={file} value={file}>{file}</option>
+                {(unlinkedFiles ?? []).map((file) => (
+                  <option key={file} value={file}>
+                    {file}
+                  </option>
                 ))}
               </select>
             </div>
@@ -275,6 +360,9 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
           <button type="submit" className="btn btn-primary" disabled={createProblem.isPending}>
             {createProblem.isPending ? "Saving..." : "Save Problem"}
           </button>
+          <p className="muted-text text-sm">
+            Saved problems enter your review queue as <strong>due</strong> (ready to schedule for re-practice).
+          </p>
         </div>
       </form>
     </div>

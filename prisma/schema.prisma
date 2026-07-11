@@ -51,11 +51,19 @@ model Problem {
   notes                String?
   isGreatProblem       Boolean  @default(false)
 
-  // Drill fields
+  // Drill fields (history)
   drillType        String?   // "mindsolve" | "implement"
   drillNotes       String?
   drillCompletions Int       @default(0)
   lastDrilledAt    DateTime?
+
+  // Spaced repetition (SM-2 schedule — "due" = re-practice now)
+  srsEnabled      Boolean  @default(true)
+  srsRepetitions  Int      @default(0)
+  srsEaseFactor   Float    @default(2.5)
+  srsIntervalDays Int      @default(0)
+  nextReviewAt    DateTime?
+  lastReviewGrade String?  // again | hard | good | easy
 
   platformId String
   platform   Platform @relation(fields: [platformId], references: [id])
@@ -66,6 +74,7 @@ model Problem {
   problemTags ProblemTag[]
   solutions   Solution[]
 
+  @@index([srsEnabled, nextReviewAt])
   @@map("problems")
 }
 

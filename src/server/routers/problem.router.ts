@@ -1,7 +1,40 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import * as problemService from "../../lib/services/problem.service";
+import { fetchLeetCodeProblem } from "../../lib/services/leetcode.service";
 import { transformProblem } from "../../lib/transforms";
+
+const reviewGradeSchema = z.enum(["again", "hard", "good", "easy"]);
+
+const solutionInputSchema = z.object({
+  language: z.string(),
+  submissionUrl: z.string().url().optional().or(z.literal("")),
+  githubUrl: z.string().url().optional().or(z.literal("")),
+  localPath: z.string().optional().or(z.literal("")),
+});
+
+const tagInputSchema = z.object({
+  tagId: z.string(),
+  role: z.string().optional(),
+  tagDifficulty: z.number().int().min(1).max(10).optional(),
+  isInstructive: z.boolean().optional(),
+});
+
+function mapSolutions(
+  solutions?: Array<{
+    language: string;
+    submissionUrl?: string;
+    githubUrl?: string;
+    localPath?: string;
+  }>
+) {
+  return solutions?.map((s) => ({
+    ...s,
+    submissionUrl: s.submissionUrl || undefined,
+    githubUrl: s.githubUrl || undefined,
+    localPath: s.localPath || undefined,
+  }));
+}
 
 export const problemRouter = router({
   list: publicProcedure.query(async () => {
@@ -17,6 +50,8 @@ export const problemRouter = router({
         greatOnly: z.boolean().optional(),
         platformId: z.string().optional(),
         tagId: z.string().optional(),
+        dueOnly: z.boolean().optional(),
+        srsEnabled: z.boolean().optional(),
       })
     )
     .query(async ({ input }) => {
@@ -26,6 +61,31 @@ export const problemRouter = router({
         total,
       };
     }),
+
+  listDue: publicProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).optional() }).optional())
+    .query(async ({ input }) => {
+      const items = await problemService.listDueForReview(input);
+      return items.map(transformProblem);
+    }),
+
+  listUpcoming: publicProcedure
+    .input(
+      z
+        .object({
+          days: z.number().int().min(1).max(90).optional(),
+          limit: z.number().int().min(1).max(200).optional(),
+        })
+        .optional()
+    )
+    .query(async ({ input }) => {
+      const items = await problemService.listUpcomingReviews(input);
+      return items.map(transformProblem);
+    }),
+
+  srsStats: publicProcedure.query(async () => {
+    return problemService.getSrsStats();
+  }),
 
   getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     const problem = await problemService.getProblemById(input.id);
@@ -47,35 +107,14 @@ export const problemRouter = router({
         isGreatProblem: z.boolean().optional(),
         drillType: z.string().nullable().optional(),
         drillNotes: z.string().optional(),
-        tags: z
-          .array(
-            z.object({
-              tagId: z.string(),
-              role: z.string().optional(),
-              tagDifficulty: z.number().int().min(1).max(10).optional(),
-              isInstructive: z.boolean().optional(),
-            })
-          )
-          .optional(),
-        solutions: z
-          .array(
-            z.object({
-              language: z.string(),
-              submissionUrl: z.string().url().optional().or(z.literal("")),
-              githubUrl: z.string().url().optional().or(z.literal("")),
-            })
-          )
-          .optional(),
+        tags: z.array(tagInputSchema).optional(),
+        solutions: z.array(solutionInputSchema).optional(),
       })
     )
     .mutation(async ({ input }) => {
       const problem = await problemService.createProblem({
         ...input,
-        solutions: input.solutions?.map((s) => ({
-          ...s,
-          submissionUrl: s.submissionUrl || undefined,
-          githubUrl: s.githubUrl || undefined,
-        })),
+        solutions: mapSolutions(input.solutions),
       });
       return transformProblem(problem);
     }),
@@ -95,36 +134,15 @@ export const problemRouter = router({
         isGreatProblem: z.boolean().optional(),
         drillType: z.string().nullable().optional(),
         drillNotes: z.string().optional(),
-        tags: z
-          .array(
-            z.object({
-              tagId: z.string(),
-              role: z.string().optional(),
-              tagDifficulty: z.number().int().min(1).max(10).optional(),
-              isInstructive: z.boolean().optional(),
-            })
-          )
-          .optional(),
-        solutions: z
-          .array(
-            z.object({
-              language: z.string(),
-              submissionUrl: z.string().url().optional().or(z.literal("")),
-              githubUrl: z.string().url().optional().or(z.literal("")),
-            })
-          )
-          .optional(),
+        tags: z.array(tagInputSchema).optional(),
+        solutions: z.array(solutionInputSchema).optional(),
       })
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
       const problem = await problemService.updateProblem(id, {
         ...data,
-        solutions: data.solutions?.map((s) => ({
-          ...s,
-          submissionUrl: s.submissionUrl || undefined,
-          githubUrl: s.githubUrl || undefined,
-        })),
+        solutions: mapSolutions(data.solutions),
       });
       return transformProblem(problem);
     }),
@@ -132,6 +150,25 @@ export const problemRouter = router({
   delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
     await problemService.deleteProblem(input.id);
     return { success: true };
+  }),
+
+  review: publicProcedure
+    .input(z.object({ id: z.string(), grade: reviewGradeSchema }))
+    .mutation(async ({ input }) => {
+      const problem = await problemService.reviewProblem(input.id, input.grade);
+      return transformProblem(problem);
+    }),
+
+  setSrsEnabled: publicProcedure
+    .input(z.object({ id: z.string(), enabled: z.boolean() }))
+    .mutation(async ({ input }) => {
+      const problem = await problemService.setSrsEnabled(input.id, input.enabled);
+      return transformProblem(problem);
+    }),
+
+  resetSrs: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
+    const problem = await problemService.resetSrs(input.id);
+    return transformProblem(problem);
   }),
 
   markDrilled: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
@@ -143,4 +180,10 @@ export const problemRouter = router({
     const problem = await problemService.undoDrilled(input.id);
     return transformProblem(problem);
   }),
+
+  fetchFromLeetCode: publicProcedure
+    .input(z.object({ url: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      return fetchLeetCodeProblem(input.url);
+    }),
 });

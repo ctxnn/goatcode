@@ -9,7 +9,11 @@
     "lint": "eslint",
     "db:backup": "tsx scripts/db-backup.ts",
     "db:backups": "tsx scripts/db-list-backups.ts",
-    "db:restore:latest": "tsx scripts/db-restore-latest.ts"
+    "db:backups:list": "tsx scripts/db-list-backups.ts",
+    "db:restore": "tsx scripts/db-restore-latest.ts",
+    "db:restore:latest": "tsx scripts/db-restore-latest.ts",
+    "prisma:seed": "npx tsx prisma/seed.ts",
+    "test:srs": "tsx scripts/test-srs.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
