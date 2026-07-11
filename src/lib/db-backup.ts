@@ -60,17 +60,22 @@ async function pathExists(filePath: string) {
 export async function listDatabaseBackups(): Promise<DatabaseBackup[]> {
   if (!(await pathExists(BACKUP_DIR))) return [];
 
-  const entries = await readdir(BACKUP_DIR);
-  const backups = await Promise.all(
-    entries
-      .filter((entry) => entry.startsWith(`${BACKUP_PREFIX}-`) && entry.endsWith(".db"))
+   const entries = await readdir(BACKUP_DIR);
+   const backups = await Promise.all(
+     entries
+       .filter(
+         (entry) =>
+           entry.startsWith(`${BACKUP_PREFIX}-`) &&
+           entry.endsWith(".db") &&
+           !entry.includes("pre-restore")
+       )
       .map(async (entry) => {
         const backupPath = path.join(BACKUP_DIR, entry);
         const stats = await stat(backupPath);
         return {
           path: backupPath,
           name: entry,
-          createdAt: stats.birthtime,
+          createdAt: stats.mtime,
           size: stats.size,
         };
       })
