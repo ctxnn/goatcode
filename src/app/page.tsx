@@ -298,8 +298,6 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {problem.notes && <div className="problem-notes">{problem.notes}</div>}
-
                       <div className="review-meta-row">
                         <span className="muted-text text-sm">
                           Drills: {problem.drillCompletions}
