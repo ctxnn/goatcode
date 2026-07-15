@@ -2,7 +2,7 @@
 
 import { keepPreviousData } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import ProblemForm from "./_components/problem-form";
+import ProblemForm, { type EditProblemInput } from "./_components/problem-form";
 import { LocalSolutionViewer } from "./_components/local-solution-viewer";
 import { GradeButtons } from "./_components/grade-buttons";
 import { trpc } from "./providers";
@@ -33,6 +33,7 @@ function srsLabel(problem: { srsEnabled: boolean; nextReviewAt: unknown }) {
 export default function Home() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("review");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingProblem, setEditingProblem] = useState<EditProblemInput | null>(null);
   const [platformFilter, setPlatformFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [greatOnly, setGreatOnly] = useState(false);
@@ -157,6 +158,7 @@ export default function Home() {
             className="btn btn-primary btn-sm"
             onClick={() => {
               setActiveTab("problems");
+              setEditingProblem(null);
               setShowCreateForm((value) => !value);
             }}
           >
@@ -227,13 +229,25 @@ export default function Home() {
           <section className="admin-workspace">
             {activeTab === "problems" && showCreateForm && (
               <ProblemForm
-                onSuccess={() => {
+                key={editingProblem?.id ?? "new"}
+                problem={editingProblem ?? undefined}
+                onCancel={() => {
+                  setEditingProblem(null);
                   setShowCreateForm(false);
-                  setStatusMessage("Problem saved — it is now due for review so you can schedule the next re-practice.");
+                }}
+                onSuccess={() => {
+                  const wasEditing = !!editingProblem;
+                  setShowCreateForm(false);
+                  setEditingProblem(null);
+                  setStatusMessage(
+                    wasEditing
+                      ? "Problem updated."
+                      : "Problem saved — it is now due for review so you can schedule the next re-practice."
+                  );
                   refetchProblems();
                   refetchDue();
                   refetchSrsStats();
-                  setActiveTab("review");
+                  if (!wasEditing) setActiveTab("review");
                 }}
               />
             )}
@@ -439,6 +453,16 @@ export default function Home() {
                             onGrade={(grade) => onGrade(problem.id, grade)}
                           />
                           <div className="action-row">
+                            <button
+                              className="btn btn-xs btn-ghost"
+                              onClick={() => {
+                                setEditingProblem(problem);
+                                setActiveTab("problems");
+                                setShowCreateForm(true);
+                              }}
+                            >
+                              Edit
+                            </button>
                             <button
                               className="btn btn-xs btn-ghost"
                               onClick={() =>

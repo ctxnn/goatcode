@@ -4,36 +4,73 @@ import { useState } from "react";
 import { trpc } from "../providers";
 import { detectPlatformSlug } from "../../lib/platform-detect";
 
-export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
+export type EditProblemInput = {
+  id: string;
+  platformId: string;
+  title: string;
+  url: string;
+  platformProblemId: string | null;
+  platformDifficulty: string | null;
+  normalizedDifficulty: number | null;
+  simplifiedStatement: string | null;
+  notes: string | null;
+  drillType: string | null;
+  drillNotes: string | null;
+  isGreatProblem: boolean;
+  tags: Array<{ tagId: string; name?: string }>;
+  solutions: Array<{
+    language: string;
+    githubUrl: string | null;
+    submissionUrl: string | null;
+    localPath: string | null;
+  }>;
+};
+
+function getInitialFormData(problem?: EditProblemInput) {
+  const firstSolution = problem?.solutions?.[0];
+  return {
+    platformId: problem?.platformId ?? "",
+    title: problem?.title ?? "",
+    url: problem?.url ?? "",
+    platformProblemId: problem?.platformProblemId ?? "",
+    platformDifficulty: problem?.platformDifficulty ?? "",
+    normalizedDifficulty: problem?.normalizedDifficulty != null ? String(problem.normalizedDifficulty) : "",
+    simplifiedStatement: problem?.simplifiedStatement ?? "",
+    notes: problem?.notes ?? "",
+    drillType: problem?.drillType ?? "",
+    drillNotes: problem?.drillNotes ?? "",
+    isGreatProblem: problem?.isGreatProblem ?? false,
+    githubUrl: firstSolution?.githubUrl ?? "",
+    submissionUrl: firstSolution?.submissionUrl ?? "",
+    localPath: firstSolution?.localPath ?? "",
+    language: firstSolution?.language ?? "C++",
+  };
+}
+
+export default function ProblemForm({
+  problem,
+  onSuccess,
+  onCancel,
+}: {
+  problem?: EditProblemInput;
+  onSuccess: () => void;
+  onCancel?: () => void;
+}) {
+  const isEditing = !!problem;
   const utils = trpc.useUtils();
   const { data: platforms } = trpc.platform.list.useQuery();
   const { data: tags, refetch: refetchTags } = trpc.tag.list.useQuery();
   const { data: unlinkedFiles } = trpc.solution.getUnlinkedFiles.useQuery();
 
-  const createProblem = trpc.problem.create.useMutation({
-    onSuccess,
-  });
+  const createProblem = trpc.problem.create.useMutation({ onSuccess });
+  const updateProblem = trpc.problem.update.useMutation({ onSuccess });
   const createTag = trpc.tag.create.useMutation();
   const fetchProblem = trpc.problem.fetchFromUrl.useMutation();
 
-  const [formData, setFormData] = useState({
-    platformId: "",
-    title: "",
-    url: "",
-    platformProblemId: "",
-    platformDifficulty: "",
-    normalizedDifficulty: "",
-    simplifiedStatement: "",
-    notes: "",
-    drillType: "",
-    drillNotes: "",
-    isGreatProblem: false,
-    githubUrl: "",
-    submissionUrl: "",
-    localPath: "",
-    language: "C++",
-  });
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [formData, setFormData] = useState(() => getInitialFormData(problem));
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    () => problem?.tags.map((t) => t.tagId) ?? []
+  );
   const [createMissingTags, setCreateMissingTags] = useState(true);
   const [fetchMessage, setFetchMessage] = useState("");
   const [fetchError, setFetchError] = useState("");
@@ -79,7 +116,9 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
         if (existing) selected.push(existing.id);
       }
 
-      setSelectedTags(selected);
+      // In edit mode, merge freshly fetched tags with any already attached to the problem
+      // so fetching never silently drops the problem's existing tags.
+      setSelectedTags((current) => Array.from(new Set([...current, ...selected])));
       await refetchTags();
       await utils.tag.list.invalidate();
       setFetchMessage(
@@ -90,49 +129,88 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
     }
   };
 
+  const buildSolutionsPayload = () => {
+    const editedSolution =
+      formData.githubUrl || formData.submissionUrl || formData.localPath
+        ? [
+            {
+              language: formData.language.trim() || "C++",
+              githubUrl: formData.githubUrl.trim() || undefined,
+              submissionUrl: formData.submissionUrl.trim() || undefined,
+              localPath: formData.localPath.trim() || undefined,
+            },
+          ]
+        : [];
+
+    // Preserve any solutions beyond the first (the form edits at most one solution).
+    const extraSolutions = (problem?.solutions ?? []).slice(1).map((s) => ({
+      language: s.language,
+      githubUrl: s.githubUrl ?? undefined,
+      submissionUrl: s.submissionUrl ?? undefined,
+      localPath: s.localPath ?? undefined,
+    }));
+
+    return [...editedSolution, ...extraSolutions];
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!formData.platformId || !formData.title || !formData.url) return;
 
-    createProblem.mutate({
-      platformId: formData.platformId,
-      title: formData.title.trim(),
-      url: formData.url.trim(),
-      platformProblemId: formData.platformProblemId.trim() || undefined,
-      platformDifficulty: formData.platformDifficulty.trim() || undefined,
-      normalizedDifficulty: formData.normalizedDifficulty ? Number(formData.normalizedDifficulty) : undefined,
-      simplifiedStatement: formData.simplifiedStatement.trim() || undefined,
-      notes: formData.notes.trim() || undefined,
-      drillType: formData.drillType || null,
-      drillNotes: formData.drillNotes.trim() || undefined,
-      isGreatProblem: formData.isGreatProblem,
-      tags: selectedTags.length
-        ? selectedTags.map((tagId) => ({
-            tagId,
-            role: "core",
-          }))
-        : undefined,
-      solutions:
-        formData.githubUrl || formData.submissionUrl || formData.localPath
-          ? [
-              {
-                language: formData.language.trim() || "C++",
-                githubUrl: formData.githubUrl.trim() || undefined,
-                submissionUrl: formData.submissionUrl.trim() || undefined,
-                localPath: formData.localPath.trim() || undefined,
-              },
-            ]
-          : undefined,
-    });
+    const tagsPayload = selectedTags.map((tagId) => ({ tagId, role: "core" }));
+    const solutionsPayload = buildSolutionsPayload();
+
+    if (isEditing && problem) {
+      updateProblem.mutate({
+        id: problem.id,
+        platformId: formData.platformId,
+        title: formData.title.trim(),
+        url: formData.url.trim(),
+        platformProblemId: formData.platformProblemId.trim() || undefined,
+        platformDifficulty: formData.platformDifficulty.trim() || undefined,
+        normalizedDifficulty: formData.normalizedDifficulty ? Number(formData.normalizedDifficulty) : undefined,
+        simplifiedStatement: formData.simplifiedStatement.trim() || undefined,
+        notes: formData.notes.trim() || undefined,
+        drillType: formData.drillType || null,
+        drillNotes: formData.drillNotes.trim() || undefined,
+        isGreatProblem: formData.isGreatProblem,
+        tags: tagsPayload,
+        solutions: solutionsPayload,
+      });
+    } else {
+      createProblem.mutate({
+        platformId: formData.platformId,
+        title: formData.title.trim(),
+        url: formData.url.trim(),
+        platformProblemId: formData.platformProblemId.trim() || undefined,
+        platformDifficulty: formData.platformDifficulty.trim() || undefined,
+        normalizedDifficulty: formData.normalizedDifficulty ? Number(formData.normalizedDifficulty) : undefined,
+        simplifiedStatement: formData.simplifiedStatement.trim() || undefined,
+        notes: formData.notes.trim() || undefined,
+        drillType: formData.drillType || null,
+        drillNotes: formData.drillNotes.trim() || undefined,
+        isGreatProblem: formData.isGreatProblem,
+        tags: selectedTags.length ? tagsPayload : undefined,
+        solutions: solutionsPayload.length ? solutionsPayload : undefined,
+      });
+    }
   };
+
+  const showCurrentLocal =
+    !!formData.localPath && !(unlinkedFiles ?? []).includes(formData.localPath);
 
   return (
     <div className="problem-form-panel">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">new entry</span>
-          <h2>Add Problem</h2>
+          <span className="eyebrow">{isEditing ? "edit entry" : "new entry"}</span>
+          <h2>{isEditing ? "Edit Problem" : "Add Problem"}</h2>
         </div>
+        {isEditing && onCancel && (
+          <button type="button" className="btn btn-sm btn-ghost" onClick={onCancel}>
+            Cancel
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="problem-form">
@@ -325,6 +403,7 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
                 onChange={(event) => setFormData({ ...formData, localPath: event.target.value })}
               >
                 <option value="">None (Select an unlinked file)</option>
+                {showCurrentLocal && <option value={formData.localPath}>{formData.localPath} (current)</option>}
                 {(unlinkedFiles ?? []).map((file) => (
                   <option key={file} value={file}>
                     {file}
@@ -354,11 +433,19 @@ export default function ProblemForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <div className="form-actions">
-          <button type="submit" className="btn btn-primary" disabled={createProblem.isPending}>
-            {createProblem.isPending ? "Saving..." : "Save Problem"}
+          <button type="submit" className="btn btn-primary" disabled={createProblem.isPending || updateProblem.isPending}>
+            {isEditing
+              ? updateProblem.isPending
+                ? "Saving..."
+                : "Save Changes"
+              : createProblem.isPending
+                ? "Saving..."
+                : "Save Problem"}
           </button>
           <p className="muted-text text-sm">
-            Saved problems enter your review queue as <strong>due</strong> (ready to schedule for re-practice).
+            {isEditing
+              ? "Updates the existing problem — nothing new is created."
+              : "Saved problems enter your review queue as due (ready to schedule for re-practice)."}
           </p>
         </div>
       </form>
