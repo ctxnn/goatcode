@@ -300,9 +300,9 @@ export default function Home() {
 
                       <div className="review-meta-row">
                         <span className="muted-text text-sm">
-                          Drills: {problem.drillCompletions}
-                          {problem.lastReviewGrade ? ` · last grade: ${problem.lastReviewGrade}` : ""}
-                          {` · ease ${problem.srsEaseFactor.toFixed(2)}`}
+                          {problem.lastReviewGrade ? `last grade: ${problem.lastReviewGrade}` : ""}
+                          {problem.lastReviewGrade ? ` · ` : ""}
+                          {`ease ${problem.srsEaseFactor.toFixed(2)}`}
                         </span>
                       </div>
 
@@ -410,8 +410,8 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="problem-score">
-                          <strong>{problem.drillCompletions}</strong>
-                          <span>drills</span>
+                          <strong>{problem.srsIntervalDays}d</strong>
+                          <span>interval</span>
                         </div>
                       </div>
 

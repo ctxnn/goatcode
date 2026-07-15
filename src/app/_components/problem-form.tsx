@@ -333,31 +333,6 @@ export default function ProblemForm({
           />
         </div>
 
-        <div className="form-grid form-grid-2">
-          <div className="form-group">
-            <label className="label">Drill Type</label>
-            <select
-              className="select"
-              value={formData.drillType}
-              onChange={(event) => setFormData({ ...formData, drillType: event.target.value })}
-            >
-              <option value="">None</option>
-              <option value="mindsolve">Mindsolve</option>
-              <option value="implement">Implement</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="label">Drill Notes</label>
-            <input
-              type="text"
-              className="input"
-              value={formData.drillNotes}
-              onChange={(event) => setFormData({ ...formData, drillNotes: event.target.value })}
-            />
-          </div>
-        </div>
-
         <div className="tag-picker">
           <div className="label">Tags</div>
           <div className="tag-picker-grid">
