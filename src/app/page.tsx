@@ -303,6 +303,7 @@ export default function Home() {
                           {problem.lastReviewGrade ? `last grade: ${problem.lastReviewGrade}` : ""}
                           {problem.lastReviewGrade ? ` · ` : ""}
                           {`ease ${problem.srsEaseFactor.toFixed(2)}`}
+                          {` · next: ${formatNextReview(asDate(problem.nextReviewAt))}`}
                         </span>
                       </div>
 
@@ -411,7 +412,7 @@ export default function Home() {
                         </div>
                         <div className="problem-score">
                           <strong>{problem.srsIntervalDays}d</strong>
-                          <span>interval</span>
+                          <span>interval · {formatNextReview(asDate(problem.nextReviewAt))}</span>
                         </div>
                       </div>
 
