@@ -52,6 +52,7 @@ export const problemRouter = router({
         tagId: z.string().optional(),
         dueOnly: z.boolean().optional(),
         srsEnabled: z.boolean().optional(),
+        search: z.string().optional(),
       })
     )
     .query(async ({ input }) => {

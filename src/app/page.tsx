@@ -37,6 +37,7 @@ export default function Home() {
   const [platformFilter, setPlatformFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [greatOnly, setGreatOnly] = useState(false);
+  const [search, setSearch] = useState("");
   const [tagForm, setTagForm] = useState({ name: "", description: "" });
   const [platformForm, setPlatformForm] = useState({ name: "", slug: "" });
   const [statusMessage, setStatusMessage] = useState("");
@@ -53,6 +54,7 @@ export default function Home() {
       platformId: platformFilter || undefined,
       tagId: tagFilter || undefined,
       greatOnly: greatOnly || undefined,
+      search: search || undefined,
     },
     { placeholderData: keepPreviousData }
   );
@@ -360,6 +362,13 @@ export default function Home() {
                 </div>
 
                 <div className="filters-bar elevated-filters">
+                  <input
+                    type="search"
+                    className="input"
+                    placeholder="Search by title…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                   <select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}>
                     <option value="">All Platforms</option>
                     {(platforms ?? []).map((platform) => (

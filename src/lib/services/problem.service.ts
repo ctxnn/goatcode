@@ -50,6 +50,7 @@ export async function listProblemsPaged(input: {
   tagId?: string;
   dueOnly?: boolean;
   srsEnabled?: boolean;
+  search?: string;
 }) {
   const page = input.page || 1;
   const pageSize = input.pageSize || 20;
@@ -60,6 +61,9 @@ export async function listProblemsPaged(input: {
   if (input.platformId) where.platformId = input.platformId;
   if (input.tagId) {
     where.problemTags = { some: { tagId: input.tagId } };
+  }
+  if (input.search?.trim()) {
+    where.title = { contains: input.search.trim() };
   }
   if (input.srsEnabled !== undefined) {
     where.srsEnabled = input.srsEnabled;
