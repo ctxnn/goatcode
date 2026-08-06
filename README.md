@@ -118,6 +118,11 @@ Your solution files under `problems/solutions/` are **gitignored** — they stay
 machine so the app can read them, but they are **not** shipped in this (open-source) repo.
 The folders ship as empty `.gitkeep` placeholders.
 
+> **This is optional.** If you don't care about versioning your solutions, you don't need to
+> do any of this — your solution files simply stay on your machine, exactly where the app
+> expects them, and nothing is ever pushed anywhere. The setup below is only if you *want* a
+> git backup of your solution code in a separate private repo.
+
 If you want those files version-controlled somewhere, point them at a **separate private
 repo** and push them with a small script. Example setup:
 
