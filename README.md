@@ -112,6 +112,46 @@ npm run db:backups:list
 npm run db:restore
 ```
 
+## Keeping personal solution code private
+
+Your solution files under `problems/solutions/` are **gitignored** — they stay on your
+machine so the app can read them, but they are **not** shipped in this (open-source) repo.
+The folders ship as empty `.gitkeep` placeholders.
+
+If you want those files version-controlled somewhere, point them at a **separate private
+repo** and push them with a small script. Example setup:
+
+```bash
+# 1. Create a private repo, e.g. github.com/<you>/goatcode-solutions
+# 2. Clone it somewhere, e.g.:
+git clone https://github.com/<you>/goatcode-solutions.git ~/goatcode-solutions
+
+# 3. Copy your current solutions into it once:
+rsync -a --exclude='.gitkeep' --exclude='.DS_Store' problems/solutions/ ~/goatcode-solutions/
+cd ~/goatcode-solutions && git add -A && git commit -m "Add solutions" && git push
+```
+
+Then add a `pre-push` hook in this repo (`goatcod/.git/hooks/pre-push`) that syncs new
+solutions on every app push:
+
+```bash
+#!/usr/bin/env bash
+# Pre-push hook: mirror new/updated solution files to the private repo, then commit + push.
+set -euo pipefail
+APP_SOLUTIONS_DIR="$PWD/problems/solutions"
+SOLUTIONS_REPO_DIR="$HOME/goatcode-solutions"
+rsync -a --exclude='.gitkeep' --exclude='.DS_Store' "$APP_SOLUTIONS_DIR/" "$SOLUTIONS_REPO_DIR/"
+cd "$SOLUTIONS_REPO_DIR"
+git add -A
+if git diff --cached --quiet; then exit 0; fi          # nothing new -> skip
+git commit -m "sync: solution code from goatcod push"
+git push
+exit 0
+```
+
+Now every `git push` on this repo automatically backs up any new/updated solution files to
+your private repo. Hooks are local-only, so this stays your personal setup.
+
 ## Tests
 
 The SM-2 scheduler has dependency-free unit tests (no extra deps — runs via `tsx`):
