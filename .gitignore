@@ -52,3 +52,6 @@ next-env.d.ts
 problems/solutions/**
 !problems/solutions/**/
 !problems/solutions/**/.gitkeep
+
+# personal sync helper (machine-specific paths)
+scripts/sync-solutions.sh
