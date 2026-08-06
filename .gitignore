@@ -46,3 +46,9 @@ next-env.d.ts
 # database
 *.db
 *.db-journal
+
+# personal solution code — tracked in the private goatcode-solutions repo
+# (keep the folders + .gitkeep so clones get a clean structure)
+problems/solutions/**
+!problems/solutions/**/
+!problems/solutions/**/.gitkeep
